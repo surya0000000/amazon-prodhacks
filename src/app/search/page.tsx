@@ -7,12 +7,12 @@ import { TraditionalList } from "@/components/search/TraditionalList";
 import { MOCK_LISTINGS } from "@/data/mockCatalog";
 import { analyzeListings } from "@/lib/intentIntegrity";
 import type { ProductListing, SortMode } from "@/types/catalog";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type ViewMode = "traditional" | "intent";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const params = useSearchParams();
   const rawQuery = params.get("q") ?? "oven under 100";
   const query = decodeURIComponent(rawQuery.replace(/\+/g, " "));
@@ -26,18 +26,6 @@ export default function SearchPage() {
   const [showValidationOverlay, setShowValidationOverlay] = useState(false);
   const [showAccessories, setShowAccessories] = useState(false);
   const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (analysis.clusters.length > 0 && expandedClusters.length === 0) {
-      setExpandedClusters([analysis.clusters[0].id]);
-    }
-  }, [analysis.clusters, expandedClusters.length]);
-
-  useEffect(() => {
-    setSelectedCompareIds((prev) =>
-      prev.filter((id) => analysis.coreResults.some((offer) => offer.id === id)),
-    );
-  }, [analysis.coreResults]);
 
   const compareOffers = useMemo(
     () =>
@@ -54,11 +42,17 @@ export default function SearchPage() {
   const ovenCoverSignal = analysis.validationSignals.find((item) =>
     item.title.toLowerCase().includes("cover"),
   );
+  const defaultExpandedClusterId = analysis.clusters[0]?.id;
+  const activeCompareIds = compareOffers.map((offer) => offer.id);
 
   const toggleCluster = (clusterId: string) => {
-    setExpandedClusters((prev) =>
-      prev.includes(clusterId) ? prev.filter((id) => id !== clusterId) : [...prev, clusterId],
-    );
+    setExpandedClusters((prev) => {
+      const baseline =
+        prev.length === 0 && defaultExpandedClusterId ? [defaultExpandedClusterId] : prev;
+      return baseline.includes(clusterId)
+        ? baseline.filter((id) => id !== clusterId)
+        : [...baseline, clusterId];
+    });
   };
 
   const toggleCompare = (listingId: string) => {
@@ -121,7 +115,9 @@ export default function SearchPage() {
               <div>
                 <h1 className="text-[20px] leading-6">
                   Results for{" "}
-                  <span className="text-[#c7511f]">"{analysis.intent.rawQuery}"</span>
+                  <span className="text-[#c7511f]">
+                    &quot;{analysis.intent.rawQuery}&quot;
+                  </span>
                 </h1>
                 <p className="mt-1 text-[12px] text-[#565959]">
                   {analysis.traditionalResults.length} matched listings before intent structuring.
@@ -189,12 +185,12 @@ export default function SearchPage() {
                   type="button"
                   className="border border-[#a2a6ac] bg-[#f0f2f2] px-2 py-1 text-[12px] hover:bg-[#e7e9ec]"
                   onClick={() => {
-                    if (selectedCompareIds.length === 0 && analysis.coreResults[0]) {
+                    if (activeCompareIds.length === 0 && analysis.coreResults[0]) {
                       setSelectedCompareIds([analysis.coreResults[0].id]);
                     }
                   }}
                 >
-                  Compare Top Options ({selectedCompareIds.length}/2)
+                  Compare Top Options ({activeCompareIds.length}/2)
                 </button>
                 <div className="ml-auto flex items-center gap-2 text-[12px]">
                   <label htmlFor="sort-mode">Sort By:</label>
@@ -217,9 +213,13 @@ export default function SearchPage() {
                     key={cluster.id}
                     cluster={cluster}
                     sortMode={sortMode}
-                    expanded={expandedClusters.includes(cluster.id)}
+                    expanded={
+                      expandedClusters.length === 0
+                        ? cluster.id === defaultExpandedClusterId
+                        : expandedClusters.includes(cluster.id)
+                    }
                     onToggle={() => toggleCluster(cluster.id)}
-                    selectedCompareIds={selectedCompareIds}
+                    selectedCompareIds={activeCompareIds}
                     onToggleCompare={toggleCompare}
                   />
                 ))}
@@ -346,5 +346,19 @@ export default function SearchPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#eaeded] p-4 text-[13px] text-[#565959]">
+          Loading search results...
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   );
 }

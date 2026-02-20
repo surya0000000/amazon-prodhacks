@@ -15,11 +15,13 @@ export function generateStaticParams() {
   return clusterIds.map((clusterId) => ({ clusterId }));
 }
 
-export default function ClusterPage({
+export default async function ClusterPage({
   params,
 }: {
-  params: { clusterId: string };
+  params: Promise<{ clusterId: string }>;
 }) {
+  const { clusterId } = await params;
+
   return (
     <Suspense
       fallback={
@@ -28,7 +30,7 @@ export default function ClusterPage({
         </div>
       }
     >
-      <ClusterDetailClient clusterId={params.clusterId} />
+      <ClusterDetailClient clusterId={clusterId} />
     </Suspense>
   );
 }

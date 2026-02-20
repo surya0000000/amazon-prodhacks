@@ -17,6 +17,18 @@ interface ProductImageProps {
   fallbackSrc?: string;
 }
 
+const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+function withBasePath(path: string) {
+  if (!path.startsWith("/") || !PUBLIC_BASE_PATH) {
+    return path;
+  }
+  if (path === PUBLIC_BASE_PATH || path.startsWith(`${PUBLIC_BASE_PATH}/`)) {
+    return path;
+  }
+  return `${PUBLIC_BASE_PATH}${path}`;
+}
+
 export function ProductImage({
   src,
   alt,
@@ -28,13 +40,17 @@ export function ProductImage({
   showOverlay = false,
   fallbackSrc = buildFallbackImageUrl(),
 }: ProductImageProps) {
+  const normalizedSrc = withBasePath(src);
+  const normalizedFallbackSrc = withBasePath(fallbackSrc);
   const [hasPrimaryFailed, setHasPrimaryFailed] = useState(false);
 
   const blurDataUrl =
     "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI2VkZWZlZiIvPjwvc3ZnPg==";
-  const safeSrc = hasPrimaryFailed ? fallbackSrc : src;
+  const safeSrc = hasPrimaryFailed ? normalizedFallbackSrc : normalizedSrc;
   const overlaySrc =
-    category && showOverlay ? getOverlayImage(category, overlayText ?? alt) : null;
+    category && showOverlay
+      ? withBasePath(getOverlayImage(category, overlayText ?? alt))
+      : null;
 
   return (
     <>

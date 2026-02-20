@@ -48,8 +48,9 @@ export default function HomePage() {
             <ProductImage
               src={buildRelevantImageUrl({
                 text: "kitchen appliances countertop oven",
-                category: "core",
+                category: "core_oven",
                 seed: 501,
+                id: "home-hero",
                 width: 1400,
                 height: 520,
               })}
@@ -57,9 +58,7 @@ export default function HomePage() {
               sizes="(max-width: 1024px) 100vw, 70vw"
               className="object-cover"
               priority
-              fallbackSeed="home-hero"
-              fallbackWidth={1400}
-              fallbackHeight={520}
+              showOverlay={false}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
             <div className="absolute bottom-3 left-3 text-white">
@@ -109,15 +108,17 @@ export default function HomePage() {
                   <ProductImage
                     src={buildRelevantImageUrl({
                       text: category.imageText,
-                      category: category.title === "Accessories" ? "accessory" : "core",
+                      category: category.title === "Accessories" ? "accessory" : "core_oven",
                       seed: index + 610,
+                      id: `home-category-${index + 1}`,
                       width: 400,
                       height: 400,
                     })}
                     alt={category.title}
                     sizes="(max-width: 1024px) 50vw, 25vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                    fallbackSeed={`home-category-${index + 1}`}
+                    category={category.title === "Accessories" ? "accessory" : "core_oven"}
+                    overlayText={category.title}
                   />
                 </div>
                 <p className="mt-2 text-[13px] text-[#0f1111] group-hover:text-[#c7511f]">

@@ -127,6 +127,11 @@ const SELLERS = [
 
 const DELIVERY_PATTERN = [1, 2, 2, 3, 3, 4, 5, 2, 1, 6];
 const RELIABILITY_PATTERN = [96, 91, 88, 84, 80, 76, 71, 66, 61, 57];
+const SMART_CLUSTER_IDS = new Set(["budget-smart", "airfry-combo", "digital-precision"]);
+
+function resolveCoreCategory(clusterId: string): "core_oven" | "smart_oven" {
+  return SMART_CLUSTER_IDS.has(clusterId) ? "smart_oven" : "core_oven";
+}
 
 const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterIndex) =>
   Array.from({ length: 6 }, (_, offerIndex) => {
@@ -141,11 +146,12 @@ const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterInde
     return {
       id: `core-${String(listingIndex + 1).padStart(3, "0")}`,
       title,
-      category: "core",
+      category: resolveCoreCategory(seed.id),
       imageUrl: buildRelevantImageUrl({
         text: `${brand} ${title}`,
-        category: "core",
+        category: resolveCoreCategory(seed.id),
         seed: listingIndex + 1,
+        id: `core-${String(listingIndex + 1).padStart(3, "0")}`,
       }),
       canonicalGroup: seed.id,
       canonicalLabel: seed.label,
@@ -179,11 +185,12 @@ const GAMING_LISTINGS: ProductListing[] = Array.from({ length: 6 }, (_, index) =
   return {
     id: `core-gaming-${index + 1}`,
     title,
-    category: "core",
+    category: resolveCoreCategory(targetCluster.id),
     imageUrl: buildRelevantImageUrl({
       text: title,
       category: "accessory",
       seed: 700 + index,
+      id: `core-gaming-${index + 1}`,
     }),
     canonicalGroup: targetCluster.id,
     canonicalLabel: targetCluster.label,
@@ -256,6 +263,7 @@ const ACCESSORY_LISTINGS: ProductListing[] = Array.from({ length: 30 }, (_, inde
       text: `${brand} ${title}`,
       category: "accessory",
       seed: 900 + index,
+      id: `acc-${String(index + 1).padStart(3, "0")}`,
     }),
     canonicalGroup: "related-accessories",
     canonicalLabel: "Related Accessories",

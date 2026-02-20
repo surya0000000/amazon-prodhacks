@@ -1,28 +1,13 @@
-type ImageCategory = "core" | "accessory";
+type ImageCategory = "core_oven" | "smart_oven" | "accessory";
 
 interface BuildRelevantImageUrlOptions {
   text: string;
   category: ImageCategory;
   seed?: number | string;
+  id?: string;
   width?: number;
   height?: number;
 }
-
-const CORE_RULES: Array<[RegExp, string]> = [
-  [/air\s?fry|crisp/i, "air fry oven kitchen appliance"],
-  [/smart|digital|precision/i, "smart oven digital kitchen appliance"],
-  [/convection/i, "convection countertop oven stainless steel"],
-  [/mini|compact|dorm|studio/i, "compact countertop mini oven kitchen"],
-  [/family|xl|large/i, "large countertop oven kitchen appliance"],
-  [/chef|pro/i, "professional countertop oven kitchen appliance"],
-];
-
-const ACCESSORY_RULES: Array<[RegExp, string]> = [
-  [/glove|mitt/i, "oven gloves kitchen accessory"],
-  [/cover/i, "appliance cover kitchen"],
-  [/clean|spray|scrubber|kit/i, "oven cleaning kit kitchen"],
-  [/tray|liner|sheet|rack/i, "oven tray liner kitchen accessory"],
-];
 
 const STOP_WORDS = new Set([
   "budget",
@@ -52,33 +37,41 @@ function normalizeText(input: string): string {
   return input.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function inferRelevantImageQuery(text: string, category: ImageCategory): string {
-  const normalized = normalizeText(text);
-  const rules = category === "core" ? CORE_RULES : ACCESSORY_RULES;
-  const matched = rules.find(([pattern]) => pattern.test(normalized));
-  if (matched) return matched[1];
-
-  if (category === "core") {
-    if (normalized.includes("oven")) return "countertop oven kitchen appliance";
-    return "kitchen appliance";
-  }
-
-  return "kitchen accessory";
-}
-
-function toKeywordList(rawQuery: string, category: ImageCategory): string[] {
-  const inferredTokens = normalizeText(rawQuery)
+function extractNounLikeTokens(rawText: string) {
+  const tokens = normalizeText(rawText)
     .split(" ")
     .map((token) => token.trim())
     .filter((token) => token.length >= 3 && !STOP_WORDS.has(token));
+  return [...new Set(tokens)];
+}
 
-  const requiredBase =
-    category === "core"
-      ? ["countertop", "oven", "kitchen", "appliance", "stainless", "steel"]
-      : ["oven", "kitchen", "accessory", "tool"];
+function categoryPreset(category: ImageCategory, text: string) {
+  if (category === "accessory") {
+    if (/glove|mitt/i.test(text)) return "accessory-gloves";
+    if (/cover/i.test(text)) return "accessory-cover";
+    if (/clean|spray|scrubber|kit/i.test(text)) return "accessory-cleaning";
+    if (/tray|liner|sheet|rack/i.test(text)) return "accessory-tray";
+    return "accessory-oven";
+  }
+  if (category === "smart_oven") {
+    return "smart-oven";
+  }
+  if (/mini|compact|dorm|studio/i.test(text)) {
+    return "mini-oven";
+  }
+  return "countertop-oven";
+}
 
-  const deduped = [...new Set([...inferredTokens, ...requiredBase])];
-  return deduped.slice(0, 8);
+function composeDeterministicSeed(
+  text: string,
+  category: ImageCategory,
+  id: string,
+  seed: number | string,
+) {
+  const preset = categoryPreset(category, text);
+  const nouns = extractNounLikeTokens(text).slice(0, 3).join("-");
+  const entropy = toStableNumber(seed) % 997;
+  return `${preset}-${id}-${nouns || "kitchen-appliance"}-${entropy}`;
 }
 
 function toStableNumber(seed: number | string) {
@@ -94,22 +87,29 @@ export function buildRelevantImageUrl({
   text,
   category,
   seed = 1,
+  id,
   width = 600,
   height = 600,
 }: BuildRelevantImageUrlOptions): string {
-  const query = inferRelevantImageQuery(text, category);
-  const keywords = toKeywordList(`${text} ${query}`, category);
-  const keywordQuery = keywords.map((token) => encodeURIComponent(token)).join("+");
-  const normalizedSeed = toStableNumber(seed) % 1000;
-  return `https://source.unsplash.com/featured/${width}x${height}/?${keywordQuery}&sig=${normalizedSeed}`;
+  const uniqueId = id ?? String(seed);
+  const deterministicSeed = composeDeterministicSeed(text, category, uniqueId, seed);
+  return `https://picsum.photos/seed/${encodeURIComponent(deterministicSeed)}/${width}/${height}`;
 }
 
-export function buildFallbackImageUrl(
-  seed: string | number,
-  width = 600,
-  height = 600,
-): string {
-  const normalizedSeed = encodeURIComponent(String(seed).toLowerCase().replace(/\s+/g, "-"));
-  return `https://picsum.photos/seed/${normalizedSeed}/${width}/${height}`;
+export function buildFallbackImageUrl() {
+  return "/oven-placeholder.jpg";
+}
+
+export function getOverlayImage(category: ImageCategory, text: string) {
+  if (category === "accessory") {
+    return "/images/overlays/accessory-overlay.png";
+  }
+  if (category === "smart_oven") {
+    return "/images/overlays/smart-oven-overlay.png";
+  }
+  if (/mini|compact|dorm|studio/i.test(text)) {
+    return "/images/overlays/mini-oven-overlay.png";
+  }
+  return "/images/overlays/countertop-oven-overlay.png";
 }
 

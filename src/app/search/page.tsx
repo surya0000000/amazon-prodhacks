@@ -296,7 +296,8 @@ function SearchPageContent() {
                                 alt={item.title}
                                 sizes="44px"
                                 className="object-cover"
-                                fallbackSeed={item.id}
+                                category={item.category}
+                                overlayText={item.title}
                               />
                             </div>
                             <div>

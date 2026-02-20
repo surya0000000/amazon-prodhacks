@@ -89,9 +89,8 @@ function ClusterDetailContent() {
                 sizes="(max-width: 1280px) 100vw, 42vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 priority
-                fallbackSeed={`${cluster.id}-hero`}
-                fallbackWidth={900}
-                fallbackHeight={900}
+                category={cluster.offers[0]?.category}
+                overlayText={cluster.label}
               />
             </div>
             <div className="mt-2 grid grid-cols-5 gap-2">
@@ -111,7 +110,8 @@ function ClusterDetailContent() {
                     alt="Product thumbnail"
                     sizes="90px"
                     className="object-cover"
-                    fallbackSeed={`${cluster.id}-thumb-${index + 1}`}
+                    category={cluster.offers[0]?.category}
+                    overlayText={cluster.label}
                   />
                 </button>
               ))}

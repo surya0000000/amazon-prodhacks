@@ -28,7 +28,8 @@ export function TraditionalList({ listings }: TraditionalListProps) {
               alt={listing.title}
               sizes="124px"
               className="object-cover transition-transform duration-200 hover:scale-[1.03]"
-              fallbackSeed={listing.id}
+              category={listing.category}
+              overlayText={listing.title}
             />
           </div>
           <div>

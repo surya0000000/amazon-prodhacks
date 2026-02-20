@@ -1,6 +1,6 @@
 import type { ProductListing } from "@/types/catalog";
 import { getListingImage } from "@/lib/catalogMedia";
-import Image from "next/image";
+import { ProductImage } from "@/components/common/ProductImage";
 
 interface TraditionalListProps {
   listings: ProductListing[];
@@ -23,12 +23,11 @@ export function TraditionalList({ listings }: TraditionalListProps) {
           className="grid grid-cols-[124px_1fr_136px] gap-3 border border-[#d5d9d9] bg-white px-3 py-3 text-[12px] hover:border-[#b7bfc7]"
         >
           <div className="relative h-[112px] overflow-hidden rounded border border-[#d5d9d9] bg-[#f7f7f7]">
-            <Image
+            <ProductImage
               src={getListingImage(listing)}
               alt={listing.title}
-              fill
               sizes="124px"
-              className="object-cover"
+              className="object-cover transition-transform duration-200 hover:scale-[1.03]"
             />
           </div>
           <div>

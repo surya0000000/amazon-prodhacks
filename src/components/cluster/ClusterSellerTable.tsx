@@ -68,8 +68,13 @@ export function ClusterSellerTable({
                     <div className="flex items-center gap-1.5">
                       <span className="text-[#0f1111]">{offer.sellerName}</span>
                       {offer.sponsored ? (
-                        <span className="border border-[#c7c7c7] bg-[#f7f7f7] px-1 py-[1px] text-[10px] text-[#555]">
-                          Sponsored
+                        <span className="group relative">
+                          <span className="border border-[#c7c7c7] bg-[#f7f7f7] px-1 py-[1px] text-[10px] text-[#555]">
+                            Sponsored
+                          </span>
+                          <span className="pointer-events-none absolute left-0 top-[120%] z-20 hidden w-48 border border-[#d5d9d9] bg-white p-1.5 text-[10px] text-[#565959] shadow-md group-hover:block">
+                            Sponsored placement inside canonical cluster. Ranking transparency is preserved.
+                          </span>
                         </span>
                       ) : null}
                     </div>

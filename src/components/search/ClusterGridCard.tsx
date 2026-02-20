@@ -1,6 +1,6 @@
 import { getClusterHeroImage } from "@/lib/catalogMedia";
 import type { CanonicalCluster } from "@/types/catalog";
-import Image from "next/image";
+import { ProductImage } from "@/components/common/ProductImage";
 import Link from "next/link";
 
 interface ClusterGridCardProps {
@@ -19,13 +19,12 @@ export function ClusterGridCard({ cluster, query }: ClusterGridCardProps) {
   return (
     <Link
       href={href}
-      className="group block cursor-pointer rounded-lg border border-[#d5d9d9] bg-white shadow-sm transition-all duration-150 hover:-translate-y-[2px] hover:border-[#b7bfc7] hover:shadow-md"
+      className="group block cursor-pointer rounded-[10px] border border-[#d5d9d9] bg-white shadow-[0_1px_2px_rgba(15,17,17,0.08)] transition-all duration-150 hover:-translate-y-[2px] hover:border-[#b7bfc7] hover:shadow-[0_4px_10px_rgba(15,17,17,0.14)]"
     >
-      <div className="relative aspect-square overflow-hidden rounded-t-lg border-b border-[#e7e7e7] bg-[#f6f7f7]">
-        <Image
+      <div className="relative aspect-square overflow-hidden rounded-t-[10px] border-b border-[#e7e7e7] bg-[#f6f7f7]">
+        <ProductImage
           src={getClusterHeroImage(cluster)}
           alt={cluster.label}
-          fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
@@ -46,6 +45,9 @@ export function ClusterGridCard({ cluster, query }: ClusterGridCardProps) {
           </span>
           <span className="border border-[#067d62]/30 bg-[#f1fff8] px-1.5 py-[1px] text-[10px] text-[#067d62]">
             {cluster.verifiedManufacturers} Verified Brands
+          </span>
+          <span className="border border-[#d5d9d9] bg-[#f7fafa] px-1.5 py-[1px] text-[10px] text-[#565959]">
+            {cluster.sellerCount} Sellers
           </span>
         </div>
       </div>

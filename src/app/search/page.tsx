@@ -4,14 +4,108 @@ import { ClusterGridCard } from "@/components/search/ClusterGridCard";
 import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { SearchChrome } from "@/components/search/SearchChrome";
 import { TraditionalList } from "@/components/search/TraditionalList";
+import { ProductImage } from "@/components/common/ProductImage";
 import { MOCK_LISTINGS } from "@/data/mockCatalog";
 import { getListingImage } from "@/lib/catalogMedia";
 import { analyzeListings } from "@/lib/intentIntegrity";
-import { Suspense, useMemo, useState } from "react";
+import type { CanonicalCluster } from "@/types/catalog";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 
 type ViewMode = "traditional" | "intent";
+
+function ClusterCardSkeleton() {
+  return (
+    <div className="rounded-[10px] border border-[#d5d9d9] bg-white p-2.5 shadow-[0_1px_2px_rgba(15,17,17,0.08)]">
+      <div className="aspect-square animate-pulse rounded bg-[#eef1f2]" />
+      <div className="mt-2 h-3 w-11/12 animate-pulse rounded bg-[#eef1f2]" />
+      <div className="mt-1 h-3 w-7/12 animate-pulse rounded bg-[#eef1f2]" />
+      <div className="mt-2 h-4 w-5/12 animate-pulse rounded bg-[#eef1f2]" />
+    </div>
+  );
+}
+
+interface ProgressiveClusterGridProps {
+  clusters: CanonicalCluster[];
+  query: string;
+}
+
+function ProgressiveClusterGrid({ clusters, query }: ProgressiveClusterGridProps) {
+  const [ready, setReady] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof window.setInterval> | null = null;
+    const timerId = window.setTimeout(() => {
+      setReady(true);
+      setVisibleCount(Math.min(4, clusters.length));
+      intervalId = window.setInterval(() => {
+        setVisibleCount((current) => {
+          if (current >= clusters.length) {
+            if (intervalId) {
+              window.clearInterval(intervalId);
+            }
+            return current;
+          }
+          return Math.min(current + 2, clusters.length);
+        });
+      }, 140);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timerId);
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [clusters.length]);
+
+  if (!ready) {
+    return (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 8 }, (_, index) => (
+          <ClusterCardSkeleton key={`skeleton-${index}`} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      {clusters.slice(0, visibleCount).map((cluster) => (
+        <ClusterGridCard key={cluster.id} cluster={cluster} query={query} />
+      ))}
+      {visibleCount < clusters.length
+        ? Array.from({ length: Math.min(2, clusters.length - visibleCount) }, (_, index) => (
+            <ClusterCardSkeleton key={`loading-more-${index}`} />
+          ))
+        : null}
+    </div>
+  );
+}
+
+interface ClusterSectionProps {
+  title: string;
+  subtitle: string;
+  clusters: CanonicalCluster[];
+  query: string;
+}
+
+function ClusterSection({ title, subtitle, clusters, query }: ClusterSectionProps) {
+  return (
+    <section className="space-y-2">
+      <div className="border border-[#d5d9d9] bg-white px-3 py-2">
+        <h2 className="text-[16px] font-semibold text-[#0f1111]">{title}</h2>
+        <p className="text-[12px] text-[#565959]">{subtitle}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+        {clusters.map((cluster) => (
+          <ClusterGridCard key={`${title}-${cluster.id}`} cluster={cluster} query={query} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function SearchPageContent() {
   const params = useSearchParams();
@@ -31,6 +125,20 @@ function SearchPageContent() {
 
   const ovenCoverSignal = analysis.validationSignals.find((item) =>
     item.title.toLowerCase().includes("cover"),
+  );
+  const comparedClusters = useMemo(
+    () =>
+      [...analysis.clusters]
+        .sort((a, b) => b.aggregateRating - a.aggregateRating || b.sellerCount - a.sellerCount)
+        .slice(0, 8),
+    [analysis.clusters],
+  );
+  const budgetAlternativeClusters = useMemo(
+    () =>
+      [...analysis.clusters]
+        .sort((a, b) => a.minPrice - b.minPrice || b.aggregateRating - a.aggregateRating)
+        .slice(0, 8),
+    [analysis.clusters],
   );
 
   return (
@@ -131,15 +239,32 @@ function SearchPageContent() {
                 </span>
               </section>
 
-              <section className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-                {analysis.clusters.map((cluster) => (
-                  <ClusterGridCard
-                    key={cluster.id}
-                    cluster={cluster}
-                    query={query}
-                  />
-                ))}
+              <section className="space-y-2">
+                <div className="border border-[#d5d9d9] bg-white px-3 py-2">
+                  <h2 className="text-[16px] font-semibold text-[#0f1111]">
+                    Core Appliance Canonical Results
+                  </h2>
+                  <p className="text-[12px] text-[#565959]">
+                    Image-first product discovery with intent filtering, canonical grouping, and
+                    seller trust signals.
+                  </p>
+                </div>
+                <ProgressiveClusterGrid key={`${query}-${analysis.clusters.length}`} clusters={analysis.clusters} query={query} />
               </section>
+
+              <ClusterSection
+                title="Customers also compared"
+                subtitle="Cross-shopped canonical families from similar sessions."
+                clusters={comparedClusters}
+                query={query}
+              />
+
+              <ClusterSection
+                title="Similar budget alternatives"
+                subtitle="Additional under-budget options with strong seller reliability."
+                clusters={budgetAlternativeClusters}
+                query={query}
+              />
 
               <section className="border border-[#d5d9d9] bg-white">
                 <button
@@ -163,14 +288,13 @@ function SearchPageContent() {
                         {analysis.relatedAccessories.map((item) => (
                           <article
                             key={item.id}
-                            className="grid grid-cols-[68px_1fr_auto] items-center gap-2 border border-[#ddd] bg-[#fdfdfd] px-2 py-2 text-[11px] opacity-90 hover:opacity-100"
+                            className="grid grid-cols-[56px_1fr_auto] items-center gap-2 border border-[#ddd] bg-[#fdfdfd] px-2 py-1.5 text-[11px] opacity-85 transition hover:opacity-100"
                           >
-                            <div className="relative h-[56px] w-[56px] overflow-hidden rounded border border-[#ddd]">
-                              <Image
+                            <div className="relative h-[44px] w-[44px] overflow-hidden rounded border border-[#ddd]">
+                              <ProductImage
                                 src={getListingImage(item)}
                                 alt={item.title}
-                                fill
-                                sizes="56px"
+                                sizes="44px"
                                 className="object-cover"
                               />
                             </div>

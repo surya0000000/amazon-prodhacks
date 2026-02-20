@@ -94,7 +94,7 @@ function ClusterDetailContent() {
               />
             </div>
             <div className="mt-2 grid grid-cols-5 gap-2">
-              {thumbnailSet.map((thumbUrl, index) => (
+              {thumbnailSet.map((thumbUrl) => (
                 <button
                   key={thumbUrl}
                   type="button"

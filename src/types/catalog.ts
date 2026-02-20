@@ -8,6 +8,7 @@ export interface ProductListing {
   id: string;
   title: string;
   category: CatalogCategory;
+  imageUrl: string;
   canonicalGroup: string;
   canonicalLabel: string;
   sellerName: string;

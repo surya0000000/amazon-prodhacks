@@ -2,15 +2,32 @@
 
 import { ProductImage } from "@/components/common/ProductImage";
 import { SearchChrome } from "@/components/search/SearchChrome";
+import { buildRelevantImageUrl } from "@/lib/imageRelevance";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 const POPULAR_CATEGORIES = [
-  { title: "Countertop Ovens", query: "countertop oven under 100", seed: "home-category-1" },
-  { title: "Smart Kitchen", query: "smart oven under 120", seed: "home-category-2" },
-  { title: "Compact Appliances", query: "compact mini oven", seed: "home-category-3" },
-  { title: "Accessories", query: "oven gloves and cover", seed: "home-category-4" },
+  {
+    title: "Countertop Ovens",
+    query: "countertop oven under 100",
+    imageText: "countertop oven kitchen appliance",
+  },
+  {
+    title: "Smart Kitchen",
+    query: "smart oven under 120",
+    imageText: "smart oven digital kitchen",
+  },
+  {
+    title: "Compact Appliances",
+    query: "compact mini oven",
+    imageText: "compact mini oven kitchen",
+  },
+  {
+    title: "Accessories",
+    query: "oven gloves and cover",
+    imageText: "oven gloves kitchen accessory",
+  },
 ];
 
 export default function HomePage() {
@@ -29,7 +46,13 @@ export default function HomePage() {
         <section className="grid gap-3 lg:grid-cols-[1.4fr_1fr]">
           <div className="relative h-[260px] overflow-hidden rounded-[8px] border border-[#d5d9d9] bg-white">
             <ProductImage
-              src="https://picsum.photos/seed/home-kitchen-hero/1400/520"
+              src={buildRelevantImageUrl({
+                text: "kitchen appliances countertop oven",
+                category: "core",
+                seed: 501,
+                width: 1400,
+                height: 520,
+              })}
               alt="Kitchen appliances hero"
               sizes="(max-width: 1024px) 100vw, 70vw"
               className="object-cover"
@@ -73,7 +96,7 @@ export default function HomePage() {
         <section className="border border-[#d5d9d9] bg-white p-3">
           <h2 className="text-[16px] font-semibold text-[#0f1111]">Popular categories</h2>
           <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {POPULAR_CATEGORIES.map((category) => (
+            {POPULAR_CATEGORIES.map((category, index) => (
               <Link
                 key={category.title}
                 href={`/search?q=${encodeURIComponent(category.query)}`}
@@ -81,7 +104,13 @@ export default function HomePage() {
               >
                 <div className="relative aspect-square overflow-hidden rounded border border-[#ddd]">
                   <ProductImage
-                    src={`https://picsum.photos/seed/${category.seed}/400/400`}
+                    src={buildRelevantImageUrl({
+                      text: category.imageText,
+                      category: category.title === "Accessories" ? "accessory" : "core",
+                      seed: index + 610,
+                      width: 400,
+                      height: 400,
+                    })}
                     alt={category.title}
                     sizes="(max-width: 1024px) 50vw, 25vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"

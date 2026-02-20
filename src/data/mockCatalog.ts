@@ -1,4 +1,5 @@
 import type { ProductListing } from "@/types/catalog";
+import { buildRelevantImageUrl } from "@/lib/imageRelevance";
 
 interface ClusterSeed {
   id: string;
@@ -133,11 +134,18 @@ const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterInde
     const reliability = RELIABILITY_PATTERN[(listingIndex + offerIndex) % RELIABILITY_PATTERN.length];
     const deliveryDays = DELIVERY_PATTERN[(offerIndex + clusterIndex) % DELIVERY_PATTERN.length];
     const priceDelta = ((clusterIndex * 3 + offerIndex * 4) % 15) - 7;
+    const title = `${seed.models[offerIndex % seed.models.length]} ${
+      ["Standard", "Plus", "Lite", "Max", "Edition", "Select"][offerIndex]
+    }`;
     return {
       id: `core-${String(listingIndex + 1).padStart(3, "0")}`,
-      title: `${seed.models[offerIndex % seed.models.length]} ${["Standard", "Plus", "Lite", "Max", "Edition", "Select"][offerIndex]}`,
+      title,
       category: "core",
-      imageUrl: `https://picsum.photos/seed/core-${seed.id}-${offerIndex + 1}/600/600`,
+      imageUrl: buildRelevantImageUrl({
+        text: title,
+        category: "core",
+        seed: listingIndex + 1,
+      }),
       canonicalGroup: seed.id,
       canonicalLabel: seed.label,
       sellerName: SELLERS[(listingIndex + offerIndex) % SELLERS.length],
@@ -159,18 +167,23 @@ const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterInde
 
 const GAMING_LISTINGS: ProductListing[] = Array.from({ length: 6 }, (_, index) => {
   const targetCluster = CLUSTER_SEEDS[index % 3];
+  const title = [
+    "Universal Oven Cover promo",
+    "Budget Oven Gloves pair",
+    "Mini Oven Cleaning Kit",
+    "Oven Liner Value Pack",
+    "Oven Protector Sheet ad",
+    "Quick Oven Scrubber tool",
+  ][index];
   return {
     id: `core-gaming-${index + 1}`,
-    title: [
-      "Universal Oven Cover promo",
-      "Budget Oven Gloves pair",
-      "Mini Oven Cleaning Kit",
-      "Oven Liner Value Pack",
-      "Oven Protector Sheet ad",
-      "Quick Oven Scrubber tool",
-    ][index],
+    title,
     category: "core",
-    imageUrl: `https://picsum.photos/seed/core-gaming-${index + 1}/600/600`,
+    imageUrl: buildRelevantImageUrl({
+      text: title,
+      category: "accessory",
+      seed: 700 + index,
+    }),
     canonicalGroup: targetCluster.id,
     canonicalLabel: targetCluster.label,
     sellerName: SELLERS[(index * 2 + 5) % SELLERS.length],
@@ -231,12 +244,17 @@ const ACCESSORY_LISTINGS: ProductListing[] = Array.from({ length: 30 }, (_, inde
   const prefix = ACCESSORY_PREFIXES[index % ACCESSORY_PREFIXES.length];
   const sellerReliability = 58 + ((index * 5) % 36);
   const price = [2, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18][index % 12];
+  const title = `${prefix} ${accessoryName}`;
 
   return {
     id: `acc-${String(index + 1).padStart(3, "0")}`,
-    title: `${prefix} ${accessoryName}`,
+    title,
     category: "accessory",
-    imageUrl: `https://picsum.photos/seed/accessory-${index + 1}/600/600`,
+    imageUrl: buildRelevantImageUrl({
+      text: title,
+      category: "accessory",
+      seed: 900 + index,
+    }),
     canonicalGroup: "related-accessories",
     canonicalLabel: "Related Accessories",
     sellerName: SELLERS[(index + 8) % SELLERS.length],

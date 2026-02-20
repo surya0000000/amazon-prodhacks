@@ -51,8 +51,6 @@ export default function HomePage() {
                 category: "core_oven",
                 seed: 501,
                 id: "home-hero",
-                width: 1400,
-                height: 520,
               })}
               alt="Kitchen appliances hero"
               sizes="(max-width: 1024px) 100vw, 70vw"
@@ -111,8 +109,6 @@ export default function HomePage() {
                       category: category.title === "Accessories" ? "accessory" : "core_oven",
                       seed: index + 610,
                       id: `home-category-${index + 1}`,
-                      width: 400,
-                      height: 400,
                     })}
                     alt={category.title}
                     sizes="(max-width: 1024px) 50vw, 25vw"

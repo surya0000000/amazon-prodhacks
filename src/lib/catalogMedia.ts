@@ -131,8 +131,6 @@ export function getClusterMedia(clusterId: string): ClusterMedia {
       category: resolveClusterCategory(clusterId),
       seed,
       id: `${clusterId}-hero`,
-      width: 900,
-      height: 900,
     }),
     gallery: Array.from({ length: 5 }, (_, index) =>
       buildRelevantImageUrl({
@@ -140,8 +138,6 @@ export function getClusterMedia(clusterId: string): ClusterMedia {
         category: resolveClusterCategory(clusterId),
         seed: `${clusterId}-gallery-${index + 1}`,
         id: `${clusterId}-${index + 1}`,
-        width: 420,
-        height: 420,
       }),
     ),
     features: clusterSeed.features,

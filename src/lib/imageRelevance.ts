@@ -5,8 +5,6 @@ interface BuildRelevantImageUrlOptions {
   category: ImageCategory;
   seed?: number | string;
   id?: string;
-  width?: number;
-  height?: number;
 }
 
 const STOP_WORDS = new Set([
@@ -62,16 +60,14 @@ function categoryPreset(category: ImageCategory, text: string) {
   return "countertop-oven";
 }
 
-function composeDeterministicSeed(
-  text: string,
-  category: ImageCategory,
-  id: string,
-  seed: number | string,
-) {
-  const preset = categoryPreset(category, text);
-  const nouns = extractNounLikeTokens(text).slice(0, 3).join("-");
-  const entropy = toStableNumber(seed) % 997;
-  return `${preset}-${id}-${nouns || "kitchen-appliance"}-${entropy}`;
+const IMAGE_COUNT_BY_CATEGORY: Record<ImageCategory, number> = {
+  core_oven: 60,
+  smart_oven: 60,
+  accessory: 60,
+};
+
+function indexToFilename(category: ImageCategory, index: number) {
+  return `/images/catalog/${category}/${category}-${String(index).padStart(2, "0")}.jpg`;
 }
 
 function toStableNumber(seed: number | string) {
@@ -88,12 +84,24 @@ export function buildRelevantImageUrl({
   category,
   seed = 1,
   id,
-  width = 600,
-  height = 600,
 }: BuildRelevantImageUrlOptions): string {
   const uniqueId = id ?? String(seed);
-  const deterministicSeed = composeDeterministicSeed(text, category, uniqueId, seed);
-  return `https://picsum.photos/seed/${encodeURIComponent(deterministicSeed)}/${width}/${height}`;
+  const max = IMAGE_COUNT_BY_CATEGORY[category];
+  const explicitNumber = uniqueId.match(/-(\d+)/)?.[1];
+
+  if (explicitNumber) {
+    const normalized = Number(explicitNumber);
+    if (Number.isFinite(normalized) && normalized > 0) {
+      const index = ((normalized - 1) % max) + 1;
+      return indexToFilename(category, index);
+    }
+  }
+
+  const preset = categoryPreset(category, text);
+  const nouns = extractNounLikeTokens(text).slice(0, 3).join("-");
+  const entropy = toStableNumber(`${preset}-${uniqueId}-${nouns}-${seed}`);
+  const index = (entropy % max) + 1;
+  return indexToFilename(category, index);
 }
 
 export function buildFallbackImageUrl() {

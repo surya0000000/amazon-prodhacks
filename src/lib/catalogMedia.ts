@@ -12,6 +12,12 @@ interface ClusterMediaSeed {
   features: string[];
 }
 
+const SMART_CLUSTER_IDS = new Set(["budget-smart", "airfry-combo", "digital-precision"]);
+
+function resolveClusterCategory(clusterId: string): ProductListing["category"] {
+  return SMART_CLUSTER_IDS.has(clusterId) ? "smart_oven" : "core_oven";
+}
+
 const CLUSTER_MEDIA_SEEDS: Record<string, ClusterMediaSeed> = {
   "budget-compact": {
     query: "compact countertop oven kitchen appliance",
@@ -122,16 +128,18 @@ export function getClusterMedia(clusterId: string): ClusterMedia {
   return {
     hero: buildRelevantImageUrl({
       text: clusterSeed.query,
-      category: "core",
+      category: resolveClusterCategory(clusterId),
       seed,
+      id: `${clusterId}-hero`,
       width: 900,
       height: 900,
     }),
     gallery: Array.from({ length: 5 }, (_, index) =>
       buildRelevantImageUrl({
         text: clusterSeed.query,
-        category: "core",
+        category: resolveClusterCategory(clusterId),
         seed: `${clusterId}-gallery-${index + 1}`,
+        id: `${clusterId}-${index + 1}`,
         width: 420,
         height: 420,
       }),
@@ -149,6 +157,7 @@ export function getListingImage(listing: ProductListing): string {
       text: listing.title,
       category: "accessory",
       seed: stringToSeed(listing.id),
+      id: listing.id,
     });
   }
 

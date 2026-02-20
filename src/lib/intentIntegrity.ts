@@ -9,6 +9,8 @@ import type {
 
 const ACCESSORY_PATTERN =
   /cover|glove|clean|kit|liner|tray|protector|scrubber|sheet|refill/i;
+const isCoreApplianceCategory = (category: ProductListing["category"]) =>
+  category === "core_oven" || category === "smart_oven";
 
 export interface IntentAnalysis {
   intent: IntentModel;
@@ -96,7 +98,7 @@ export function analyzeListings(
       });
       continue;
     }
-    if (listing.category === "core") {
+    if (isCoreApplianceCategory(listing.category)) {
       coreResults.push(listing);
     }
   }

@@ -27,7 +27,8 @@ export function ClusterGridCard({ cluster, query }: ClusterGridCardProps) {
           alt={cluster.label}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          fallbackSeed={`${cluster.id}-card`}
+          category={cluster.offers[0]?.category}
+          overlayText={cluster.label}
         />
       </div>
       <div className="space-y-1.5 p-2.5">

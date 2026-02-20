@@ -1,4 +1,4 @@
-export type CatalogCategory = "core" | "accessory";
+export type CatalogCategory = "core_oven" | "smart_oven" | "accessory";
 
 export type SortMode = "lowestPrice" | "sellerReliability" | "deliverySpeed";
 

@@ -25,7 +25,7 @@ export function ProductImage({
   priority = false,
   category,
   overlayText,
-  showOverlay = true,
+  showOverlay = false,
   fallbackSrc = buildFallbackImageUrl(),
 }: ProductImageProps) {
   const [hasPrimaryFailed, setHasPrimaryFailed] = useState(false);

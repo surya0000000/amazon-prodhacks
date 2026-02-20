@@ -134,6 +134,7 @@ const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterInde
     const reliability = RELIABILITY_PATTERN[(listingIndex + offerIndex) % RELIABILITY_PATTERN.length];
     const deliveryDays = DELIVERY_PATTERN[(offerIndex + clusterIndex) % DELIVERY_PATTERN.length];
     const priceDelta = ((clusterIndex * 3 + offerIndex * 4) % 15) - 7;
+    const brand = seed.brands[(offerIndex + clusterIndex) % seed.brands.length];
     const title = `${seed.models[offerIndex % seed.models.length]} ${
       ["Standard", "Plus", "Lite", "Max", "Edition", "Select"][offerIndex]
     }`;
@@ -142,14 +143,14 @@ const CORE_LISTINGS: ProductListing[] = CLUSTER_SEEDS.flatMap((seed, clusterInde
       title,
       category: "core",
       imageUrl: buildRelevantImageUrl({
-        text: title,
+        text: `${brand} ${title}`,
         category: "core",
         seed: listingIndex + 1,
       }),
       canonicalGroup: seed.id,
       canonicalLabel: seed.label,
       sellerName: SELLERS[(listingIndex + offerIndex) % SELLERS.length],
-      brand: seed.brands[(offerIndex + clusterIndex) % seed.brands.length],
+      brand,
       verifiedManufacturer: offerIndex % 3 !== 2,
       sellerReliability: reliability,
       fulfillmentHistory: Math.min(99, reliability + 7 + (offerIndex % 3)),
@@ -244,6 +245,7 @@ const ACCESSORY_LISTINGS: ProductListing[] = Array.from({ length: 30 }, (_, inde
   const prefix = ACCESSORY_PREFIXES[index % ACCESSORY_PREFIXES.length];
   const sellerReliability = 58 + ((index * 5) % 36);
   const price = [2, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18][index % 12];
+  const brand = ACCESSORY_BRANDS[index % ACCESSORY_BRANDS.length];
   const title = `${prefix} ${accessoryName}`;
 
   return {
@@ -251,14 +253,14 @@ const ACCESSORY_LISTINGS: ProductListing[] = Array.from({ length: 30 }, (_, inde
     title,
     category: "accessory",
     imageUrl: buildRelevantImageUrl({
-      text: title,
+      text: `${brand} ${title}`,
       category: "accessory",
       seed: 900 + index,
     }),
     canonicalGroup: "related-accessories",
     canonicalLabel: "Related Accessories",
     sellerName: SELLERS[(index + 8) % SELLERS.length],
-    brand: ACCESSORY_BRANDS[index % ACCESSORY_BRANDS.length],
+    brand,
     verifiedManufacturer: index % 3 !== 1,
     sellerReliability,
     fulfillmentHistory: Math.min(99, sellerReliability + 9),

@@ -24,6 +24,20 @@ const ACCESSORY_RULES: Array<[RegExp, string]> = [
   [/tray|liner|sheet|rack/i, "oven tray liner kitchen accessory"],
 ];
 
+const STOP_WORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "plus",
+  "max",
+  "pro",
+  "select",
+  "edition",
+  "standard",
+  "lite",
+]);
+
 function normalizeText(input: string): string {
   return input.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -42,6 +56,18 @@ export function inferRelevantImageQuery(text: string, category: ImageCategory): 
   return "kitchen accessory";
 }
 
+function toKeywordCsv(rawQuery: string, category: ImageCategory): string {
+  const baseKeywords =
+    category === "core"
+      ? ["countertop", "oven", "kitchen", "appliance", "photo"]
+      : ["oven", "kitchen", "accessory", "tool", "photo"];
+  const inferredTokens = normalizeText(rawQuery)
+    .split(" ")
+    .filter((token) => token.length >= 3 && !STOP_WORDS.has(token));
+  const keywordSet = new Set([...inferredTokens, ...baseKeywords]);
+  return [...keywordSet].slice(0, 7).join(",");
+}
+
 export function buildRelevantImageUrl({
   text,
   category,
@@ -51,6 +77,7 @@ export function buildRelevantImageUrl({
 }: BuildRelevantImageUrlOptions): string {
   const query = inferRelevantImageQuery(text, category);
   const normalizedSeed = Math.max(1, Math.abs(seed % 1000));
-  return `https://source.unsplash.com/featured/${width}x${height}/?${encodeURIComponent(query)}&sig=${normalizedSeed}`;
+  const keywordCsv = toKeywordCsv(`${text} ${query}`, category);
+  return `https://source.unsplash.com/random/${width}x${height}/?${keywordCsv}&sig=${normalizedSeed}`;
 }
 

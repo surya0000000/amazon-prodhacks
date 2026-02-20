@@ -35,14 +35,14 @@ function ProgressiveClusterGrid({ clusters, query }: ProgressiveClusterGridProps
   const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
-    let intervalId: ReturnType<typeof window.setInterval> | null = null;
+    let intervalId: number | undefined;
     const timerId = window.setTimeout(() => {
       setReady(true);
       setVisibleCount(Math.min(4, clusters.length));
       intervalId = window.setInterval(() => {
         setVisibleCount((current) => {
           if (current >= clusters.length) {
-            if (intervalId) {
+            if (intervalId !== undefined) {
               window.clearInterval(intervalId);
             }
             return current;
@@ -54,7 +54,7 @@ function ProgressiveClusterGrid({ clusters, query }: ProgressiveClusterGridProps
 
     return () => {
       window.clearTimeout(timerId);
-      if (intervalId) {
+      if (intervalId !== undefined) {
         window.clearInterval(intervalId);
       }
     };

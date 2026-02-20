@@ -3,7 +3,7 @@ type ImageCategory = "core" | "accessory";
 interface BuildRelevantImageUrlOptions {
   text: string;
   category: ImageCategory;
-  seed?: number;
+  seed?: number | string;
   width?: number;
   height?: number;
 }
@@ -25,17 +25,27 @@ const ACCESSORY_RULES: Array<[RegExp, string]> = [
 ];
 
 const STOP_WORDS = new Set([
-  "the",
-  "and",
-  "for",
-  "with",
-  "plus",
-  "max",
-  "pro",
+  "budget",
+  "cheap",
+  "premium",
+  "family",
+  "value",
+  "essential",
+  "deluxe",
   "select",
   "edition",
   "standard",
   "lite",
+  "plus",
+  "max",
+  "the",
+  "and",
+  "for",
+  "with",
+  "under",
+  "over",
+  "best",
+  "new",
 ]);
 
 function normalizeText(input: string): string {
@@ -56,16 +66,28 @@ export function inferRelevantImageQuery(text: string, category: ImageCategory): 
   return "kitchen accessory";
 }
 
-function toKeywordCsv(rawQuery: string, category: ImageCategory): string {
-  const baseKeywords =
-    category === "core"
-      ? ["countertop", "oven", "kitchen", "appliance", "photo"]
-      : ["oven", "kitchen", "accessory", "tool", "photo"];
+function toKeywordList(rawQuery: string, category: ImageCategory): string[] {
   const inferredTokens = normalizeText(rawQuery)
     .split(" ")
+    .map((token) => token.trim())
     .filter((token) => token.length >= 3 && !STOP_WORDS.has(token));
-  const keywordSet = new Set([...inferredTokens, ...baseKeywords]);
-  return [...keywordSet].slice(0, 7).join(",");
+
+  const requiredBase =
+    category === "core"
+      ? ["countertop", "oven", "kitchen", "appliance", "stainless", "steel"]
+      : ["oven", "kitchen", "accessory", "tool"];
+
+  const deduped = [...new Set([...inferredTokens, ...requiredBase])];
+  return deduped.slice(0, 8);
+}
+
+function toStableNumber(seed: number | string) {
+  const normalized = String(seed);
+  let hash = 0;
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash = (hash * 31 + normalized.charCodeAt(index)) % 1000003;
+  }
+  return Math.abs(hash) || 1;
 }
 
 export function buildRelevantImageUrl({
@@ -76,8 +98,18 @@ export function buildRelevantImageUrl({
   height = 600,
 }: BuildRelevantImageUrlOptions): string {
   const query = inferRelevantImageQuery(text, category);
-  const normalizedSeed = Math.max(1, Math.abs(seed % 1000));
-  const keywordCsv = toKeywordCsv(`${text} ${query}`, category);
-  return `https://source.unsplash.com/random/${width}x${height}/?${keywordCsv}&sig=${normalizedSeed}`;
+  const keywords = toKeywordList(`${text} ${query}`, category);
+  const keywordQuery = keywords.map((token) => encodeURIComponent(token)).join("+");
+  const normalizedSeed = toStableNumber(seed) % 1000;
+  return `https://source.unsplash.com/featured/${width}x${height}/?${keywordQuery}&sig=${normalizedSeed}`;
+}
+
+export function buildFallbackImageUrl(
+  seed: string | number,
+  width = 600,
+  height = 600,
+): string {
+  const normalizedSeed = encodeURIComponent(String(seed).toLowerCase().replace(/\s+/g, "-"));
+  return `https://picsum.photos/seed/${normalizedSeed}/${width}/${height}`;
 }
 

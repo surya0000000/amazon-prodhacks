@@ -127,11 +127,11 @@ export function getClusterMedia(clusterId: string): ClusterMedia {
       width: 900,
       height: 900,
     }),
-    gallery: Array.from({ length: 4 }, (_, index) =>
+    gallery: Array.from({ length: 5 }, (_, index) =>
       buildRelevantImageUrl({
         text: clusterSeed.query,
         category: "core",
-        seed: seed + index + 11,
+        seed: `${clusterId}-gallery-${index + 1}`,
         width: 420,
         height: 420,
       }),

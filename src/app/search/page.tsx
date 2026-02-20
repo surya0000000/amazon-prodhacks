@@ -296,6 +296,7 @@ function SearchPageContent() {
                                 alt={item.title}
                                 sizes="44px"
                                 className="object-cover"
+                                fallbackSeed={item.id}
                               />
                             </div>
                             <div>

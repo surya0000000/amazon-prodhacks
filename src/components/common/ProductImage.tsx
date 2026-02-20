@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-
-const FALLBACK_IMAGE = "/images/fallback-appliance.svg";
+import { buildFallbackImageUrl } from "@/lib/imageRelevance";
 
 interface ProductImageProps {
   src: string;
@@ -11,6 +10,9 @@ interface ProductImageProps {
   sizes: string;
   className?: string;
   priority?: boolean;
+  fallbackSeed?: string;
+  fallbackWidth?: number;
+  fallbackHeight?: number;
 }
 
 export function ProductImage({
@@ -19,9 +21,20 @@ export function ProductImage({
   sizes,
   className,
   priority = false,
+  fallbackSeed,
+  fallbackWidth = 600,
+  fallbackHeight = 600,
 }: ProductImageProps) {
-  const [failedSources, setFailedSources] = useState<Record<string, true>>({});
-  const safeSrc = failedSources[src] ? FALLBACK_IMAGE : src || FALLBACK_IMAGE;
+  const fallbackUrl = buildFallbackImageUrl(
+    fallbackSeed ?? `${alt}-${src}`,
+    fallbackWidth,
+    fallbackHeight,
+  );
+  const [hasPrimaryFailed, setHasPrimaryFailed] = useState(false);
+
+  const blurDataUrl =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI2VkZWZlZiIvPjwvc3ZnPg==";
+  const safeSrc = hasPrimaryFailed ? fallbackUrl : src;
 
   return (
     <Image
@@ -30,11 +43,14 @@ export function ProductImage({
       fill
       sizes={sizes}
       priority={priority}
-      className={className}
+      loading={priority ? "eager" : "lazy"}
+      placeholder="blur"
+      blurDataURL={blurDataUrl}
+      className={`rounded-[8px] object-cover ${className ?? ""}`}
       onError={() => {
-        setFailedSources((current) =>
-          current[src] ? current : { ...current, [src]: true },
-        );
+        if (!hasPrimaryFailed) {
+          setHasPrimaryFailed(true);
+        }
       }}
     />
   );

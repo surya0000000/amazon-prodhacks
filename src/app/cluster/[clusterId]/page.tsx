@@ -33,7 +33,8 @@ function ClusterDetailContent() {
   const [expandedOfferIds, setExpandedOfferIds] = useState<string[]>([]);
   const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
   const [activeImage, setActiveImage] = useState(media.hero);
-  const imageSet = [media.hero, ...media.gallery];
+  const thumbnailSet = media.gallery.slice(0, 5);
+  const imageSet = [media.hero, ...thumbnailSet];
   const displayImage = imageSet.includes(activeImage) ? activeImage : media.hero;
 
   if (!cluster) {
@@ -88,10 +89,13 @@ function ClusterDetailContent() {
                 sizes="(max-width: 1280px) 100vw, 42vw"
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 priority
+                fallbackSeed={`${cluster.id}-hero`}
+                fallbackWidth={900}
+                fallbackHeight={900}
               />
             </div>
             <div className="mt-2 grid grid-cols-5 gap-2">
-              {imageSet.slice(0, 5).map((thumbUrl) => (
+              {thumbnailSet.map((thumbUrl, index) => (
                 <button
                   key={thumbUrl}
                   type="button"
@@ -107,6 +111,7 @@ function ClusterDetailContent() {
                     alt="Product thumbnail"
                     sizes="90px"
                     className="object-cover"
+                    fallbackSeed={`${cluster.id}-thumb-${index + 1}`}
                   />
                 </button>
               ))}
